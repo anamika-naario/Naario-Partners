@@ -1,0 +1,698 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#D4537E;--pink-light:#FBEAF0;--pink-dark:#72243E;
+  --green-light:#EAF3DE;--green-dark:#27500A;--green-mid:#C0DD97;
+  --amber-light:#FAEEDA;--amber-dark:#633806;
+  --red-light:#FCEBEB;--red-dark:#791F1F;--red-mid:#F7C1C1;
+  --blue-light:#E6F1FB;--blue-dark:#0C447C;
+  --purple-light:#EEEDFE;--purple-dark:#3C3489;
+  --teal-light:#E1F5EE;--teal-dark:#085041;
+  --coral-light:#FAECE7;--coral-dark:#712B13;
+}
+body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary);background:transparent}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);position:sticky;top:0;z-index:10}
+.brand{display:flex;align-items:center;gap:8px}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:var(--pink)}
+.brand-name{font-size:15px;font-weight:500;letter-spacing:-.3px}
+.sync-indicator{font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#639922}
+.sync-dot.syncing{background:#BA7517;animation:pulse 1s infinite}
+.sync-dot.error{background:#E24B4A}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.role-toggle{display:flex;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:3px;gap:2px}
+.role-btn{padding:5px 14px;border-radius:6px;border:none;background:none;font-size:12px;cursor:pointer;color:var(--color-text-secondary);font-family:var(--font-sans);transition:all .15s}
+.role-btn.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;border:0.5px solid var(--color-border-tertiary)}
+
+.screen{display:none;padding:1.25rem}
+.screen.active{display:block}
+.page-title{font-size:20px;font-weight:500;margin-bottom:3px}
+.page-sub{font-size:13px;color:var(--color-text-secondary);margin-bottom:1.5rem}
+
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:14px;font-weight:500;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px}
+.metric-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.metric-value{font-size:22px;font-weight:500}
+.metric-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+
+.btn{padding:8px 16px;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;font-family:var(--font-sans);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--color-background-secondary)}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
+.btn-primary:hover{opacity:.82}
+.btn-danger{background:var(--red-light);color:var(--red-dark);border-color:var(--red-mid)}
+.btn-success{background:var(--green-light);color:var(--green-dark);border-color:var(--green-mid)}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+.badge{font-size:11px;font-weight:500;padding:3px 9px;border-radius:99px;display:inline-block;white-space:nowrap}
+.b-advocate{background:var(--blue-light);color:var(--blue-dark)}
+.b-ambassador{background:var(--green-light);color:var(--green-dark)}
+.b-mentor{background:var(--amber-light);color:var(--amber-dark)}
+.b-pending{background:var(--amber-light);color:var(--amber-dark)}
+.b-approved{background:var(--green-light);color:var(--green-dark)}
+.b-rejected{background:var(--red-light);color:var(--red-dark)}
+.coins-pill{background:var(--amber-light);color:var(--amber-dark);font-size:12px;font-weight:500;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.cash-pill{background:var(--green-light);color:var(--green-dark);font-size:12px;font-weight:500;padding:3px 9px;border-radius:99px;white-space:nowrap}
+
+input,select,textarea{width:100%;padding:9px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--color-border-primary)}
+textarea{resize:vertical;min-height:70px;line-height:1.5}
+label{font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:4px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{margin-bottom:14px}
+
+.partner-card{display:flex;align-items:center;gap:12px;padding:14px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:10px;cursor:pointer;transition:all .15s;background:var(--color-background-primary)}
+.partner-card:hover{border-color:var(--color-border-primary);background:var(--color-background-secondary)}
+.avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.av-sm{width:36px;height:36px}
+.av-md{width:44px;height:44px;font-size:15px}
+.av-purple{background:var(--purple-light);color:var(--purple-dark)}
+.av-teal{background:var(--teal-light);color:var(--teal-dark)}
+.av-coral{background:var(--coral-light);color:var(--coral-dark)}
+.av-pink{background:var(--pink-light);color:var(--pink-dark)}
+.av-blue{background:var(--blue-light);color:var(--blue-dark)}
+
+.act-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.act-row:last-child{border-bottom:none}
+.act-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
+
+.progress-track{background:var(--color-background-secondary);border-radius:99px;height:5px;margin:6px 0}
+.progress-fill{height:5px;border-radius:99px;background:var(--pink);transition:width .4s}
+
+.info-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px;font-size:12px;color:var(--color-text-secondary);line-height:1.7;margin-bottom:14px}
+.info-box strong{color:var(--color-text-primary)}
+
+.section-sep{display:flex;align-items:center;gap:8px;margin:1.5rem 0 1rem;font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px}
+.section-sep:after{content:'';flex:1;height:0.5px;background:var(--color-border-tertiary)}
+
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--color-text-secondary);font-size:13px}
+.skeleton{background:var(--color-background-secondary);border-radius:var(--border-radius-md);height:60px;margin-bottom:10px;animation:shimmer 1.2s infinite}
+@keyframes shimmer{0%,100%{opacity:.6}50%{opacity:1}}
+
+.toast{position:sticky;top:56px;z-index:20;font-size:13px;padding:10px 16px;border-radius:var(--border-radius-md);margin:0 1.25rem 1rem;display:none;text-align:center}
+.toast.show{display:block}
+.toast.ok{background:var(--green-light);color:var(--green-dark);border:0.5px solid var(--green-mid)}
+.toast.err{background:var(--red-light);color:var(--red-dark);border:0.5px solid var(--red-mid)}
+.toast.info{background:var(--blue-light);color:var(--blue-dark);border:0.5px solid var(--blue-dark)}
+
+.confirm-overlay{background:rgba(0,0,0,.3);border-radius:var(--border-radius-lg);padding:2rem;display:flex;align-items:center;justify-content:center;min-height:160px;margin-top:1rem}
+.confirm-box{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem;max-width:300px;width:100%;text-align:center}
+
+.sheet-link{font-size:12px;color:var(--blue-dark);background:var(--blue-light);padding:4px 10px;border-radius:99px;text-decoration:none;border:0.5px solid var(--blue-dark)}
+
+.reward-table{width:100%;font-size:12px;border-collapse:collapse}
+.reward-table th{background:var(--color-background-secondary);padding:7px 10px;text-align:left;font-weight:500;font-size:11px;color:var(--color-text-secondary)}
+.reward-table td{padding:7px 10px;border-top:0.5px solid var(--color-border-tertiary)}
+</style>
+
+<div id="toast" class="toast"></div>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <span class="brand-name">naario partners</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="sync-indicator">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">Loading</span>
+    </div>
+    <div class="role-toggle">
+      <button class="role-btn active" onclick="setRole('partner')" id="btn-role-partner">Partner</button>
+      <button class="role-btn" onclick="setRole('team')" id="btn-role-team">Team</button>
+    </div>
+  </div>
+</div>
+
+<div id="s-loading" class="screen active" style="padding:1.25rem">
+  <div class="skeleton"></div><div class="skeleton" style="height:44px"></div><div class="skeleton" style="height:44px"></div>
+</div>
+
+<!-- PARTNER LIST -->
+<div id="s-partner-list" class="screen">
+  <div class="page-title">Partner portal</div>
+  <div class="page-sub">Select your profile or register below</div>
+  <div id="plist-container"></div>
+  <div class="section-sep">New partner</div>
+  <div class="card">
+    <div class="card-title">Register new partner</div>
+    <div class="form-row">
+      <div class="fg"><label>Full name</label><input id="np-name" placeholder="e.g. Priya Sharma"></div>
+      <div class="fg"><label>Phone / WhatsApp</label><input id="np-phone" placeholder="+91 98765 43210"></div>
+    </div>
+    <div class="fg"><label>Starting tier</label>
+      <select id="np-tier">
+        <option value="Advocate">Advocate — Rs. 1,000/month · 10% discount</option>
+        <option value="Ambassador">Ambassador — Rs. 2,000/month · 20% discount</option>
+        <option value="Mentor">Mentor — Rs. 3,000/month · 30% discount</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="btn-add-partner" onclick="addPartner()">Add partner</button>
+  </div>
+</div>
+
+<!-- PARTNER DASHBOARD -->
+<div id="s-partner-dash" class="screen">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem">
+    <button class="btn btn-sm" onclick="showScreen('s-partner-list')">&#8592; Back</button>
+    <div style="flex:1">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="pd-name" style="font-size:18px;font-weight:500"></span>
+        <span id="pd-tier-badge"></span>
+      </div>
+      <div id="pd-phone" style="font-size:12px;color:var(--color-text-secondary);margin-top:1px"></div>
+    </div>
+    <button class="btn btn-primary" onclick="showScreen('s-log-activity')">+ Log activity</button>
+  </div>
+  <div class="metrics" id="pd-metrics"></div>
+  <div class="card">
+    <div class="card-title">Monthly billing progress</div>
+    <div id="pd-progress"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Rewards breakdown</div>
+    <div id="pd-rewards"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Activity history</div>
+    <div id="pd-activities"></div>
+  </div>
+</div>
+
+<!-- LOG ACTIVITY -->
+<div id="s-log-activity" class="screen">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem">
+    <button class="btn btn-sm" onclick="showScreen('s-partner-dash')">&#8592; Back</button>
+    <div class="page-title" style="margin-bottom:0">Log new activity</div>
+  </div>
+  <div class="card">
+    <div class="fg"><label>Activity type</label>
+      <select id="act-type" onchange="actTypeChanged()">
+        <option value="">Choose type...</option>
+        <optgroup label="Billing">
+          <option value="billing">Monthly portal billing</option>
+        </optgroup>
+        <optgroup label="Coins — referrals">
+          <option value="referral_intro">Referral — introduce 1 new partner (1,000 coins)</option>
+          <option value="referral_2">Referral — 2 new partners in 3 months bonus (2,000 coins)</option>
+          <option value="referral_3months">New partner: first 3 months billing met (3,000 coins)</option>
+          <option value="referral_6months">New partner: first 6 months bonus (5,000 coins)</option>
+        </optgroup>
+        <optgroup label="Coins — engagement">
+          <option value="content">Content creation — video / review / post (200 coins)</option>
+          <option value="kitty">Kitty party — 6+ attendees (250 coins)</option>
+        </optgroup>
+        <optgroup label="Cash earning">
+          <option value="activation">Large activation — pop-up event (Rs. 1,000)</option>
+          <option value="listing">Product listing at retail outlet (Rs. 1,000)</option>
+          <option value="po_3k">Retail PO min Rs. 3,000 (Rs. 300 cash)</option>
+          <option value="po_5k">Retail PO min Rs. 5,000 (Rs. 500 cash)</option>
+        </optgroup>
+      </select>
+    </div>
+    <div id="billing-group" style="display:none" class="fg">
+      <label>Billing amount (Rs.)</label>
+      <input type="number" id="act-billing" placeholder="e.g. 2000" oninput="actTypeChanged()">
+    </div>
+    <div id="act-preview" style="display:none" class="info-box"></div>
+    <div class="fg"><label>Description / details</label><textarea id="act-desc" placeholder="Describe the activity with any relevant details..."></textarea></div>
+    <div class="fg"><label>Proof link or reference (optional)</label><input id="act-proof" placeholder="Instagram URL, invoice number, photo link..."></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" id="btn-submit-act" onclick="submitActivity()">Submit for approval</button>
+      <button class="btn" onclick="showScreen('s-partner-dash')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEAM DASHBOARD -->
+<div id="s-team-dash" class="screen">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem">
+    <div class="page-title">Team dashboard</div>
+    <span id="sheet-link-wrap"></span>
+  </div>
+  <div class="page-sub">Review submissions and manage partners</div>
+  <div class="metrics" id="team-metrics"></div>
+  <div class="card">
+    <div class="card-title">
+      <span>Pending approvals <span id="pending-count-badge" class="badge b-pending" style="margin-left:6px">0</span></span>
+      <button class="btn btn-sm" onclick="loadAll(true)">&#8635; Refresh</button>
+    </div>
+    <div id="pending-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">All partners</div>
+    <div id="team-partner-list"></div>
+  </div>
+</div>
+
+<!-- TEAM — PARTNER DETAIL -->
+<div id="s-team-partner" class="screen">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem">
+    <button class="btn btn-sm" onclick="showScreen('s-team-dash')">&#8592; Back</button>
+    <div id="tp-header" style="flex:1"></div>
+  </div>
+  <div id="tp-metrics" class="metrics"></div>
+  <div class="card">
+    <div class="card-title">Monthly progress & rewards</div>
+    <div id="tp-progress"></div>
+  </div>
+  <div id="delete-zone"></div>
+  <div class="card">
+    <div class="card-title">Activity history</div>
+    <div id="tp-activities"></div>
+  </div>
+</div>
+
+<script>
+const API='https://script.google.com/macros/s/AKfycbyw-rsQMtFCj-tjUrZQS916E29BOQDI_poYv-YXj3kTHXtGF6Aftf4d1WcSHLhQe9Ng/exec';
+
+const TIERS={
+  Advocate:{min:1000,coins_q:1000,disc:10,bonus_coins:1000},
+  Ambassador:{min:2000,coins_q:2000,disc:20,bonus_coins:2000},
+  Mentor:{min:3000,coins_q:3000,disc:30,bonus_coins:3000}
+};
+
+const ACT_META={
+  billing:{label:'Monthly billing',coins:0,cash:0},
+  content:{label:'Content creation',coins:200,cash:0},
+  kitty:{label:'Kitty party',coins:250,cash:0},
+  referral_intro:{label:'Referral – new partner',coins:1000,cash:0},
+  referral_2:{label:'Referral – 2 partners bonus',coins:2000,cash:0},
+  referral_3months:{label:'New partner 3-month sales',coins:3000,cash:0},
+  referral_6months:{label:'New partner 6-month bonus',coins:5000,cash:0},
+  activation:{label:'Large activation',coins:0,cash:1000},
+  listing:{label:'Product listing',coins:0,cash:1000},
+  po_3k:{label:'Retail PO (Rs. 3k)',coins:0,cash:300},
+  po_5k:{label:'Retail PO (Rs. 5k)',coins:0,cash:500},
+  quarterly_reward:{label:'Quarterly reward',coins:0,cash:0},
+  quarterly_bonus:{label:'3-month bonus',coins:0,cash:0},
+};
+
+// UPDATED: new redemption table — 4000 coins = Rs.1000 added
+const COIN_CASH=[[4000,1000],[8000,2000],[16000,4000],[24000,6000]];
+
+const AV=['av-purple','av-teal','av-coral','av-pink','av-blue'];
+let state={partners:[],activities:[],currentPartner:null,sheetUrl:null};
+
+function ini(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function coinsToCash(c){let v=0;for(let[t,cv] of COIN_CASH)if(c>=t)v=cv;return v;}
+function pCoins(pid){return state.activities.filter(a=>a.partnerId===pid&&a.status==='approved').reduce((s,a)=>s+(Number(a.coins)||0),0);}
+function pCash(pid){return state.activities.filter(a=>a.partnerId===pid&&a.status==='approved').reduce((s,a)=>s+(Number(a.cash)||0),0);}
+function pMB(p){return Array.isArray(p.monthBilling)?(Number(p.monthBilling[2])||0):0;}
+function tc(t){return 'b-'+(t||'advocate').toLowerCase();}
+function av(i){return AV[i%AV.length];}
+function Rs(n){return 'Rs.\u202f'+Number(n).toLocaleString('en-IN');}
+function setSyncState(s){
+  const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-label');
+  dot.className='sync-dot'+(s==='syncing'?' syncing':s==='error'?' error':'');
+  lbl.textContent=s==='syncing'?'Syncing…':s==='error'?'Offline':'Live';
+}
+
+async function api(params,body=null){
+  setSyncState('syncing');
+  try{
+    const url=API+'?'+new URLSearchParams(params).toString();
+    const opts=body?{method:'POST',body:JSON.stringify(body)}:{method:'GET'};
+    const r=await fetch(url,opts);
+    const d=await r.json();
+    setSyncState('ok');
+    if(!d.ok) throw new Error(d.error||'API error');
+    return d.data;
+  }catch(e){setSyncState('error');throw e;}
+}
+
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast show '+(type==='error'?'err':type==='info'?'info':'ok');
+  setTimeout(()=>el.className='toast',3000);
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='s-team-dash') renderTeamDash();
+  if(id==='s-partner-list') renderPartnerList();
+  if(id==='s-partner-dash') renderPartnerDash();
+}
+
+function setRole(r){
+  document.getElementById('btn-role-partner').classList.toggle('active',r==='partner');
+  document.getElementById('btn-role-team').classList.toggle('active',r==='team');
+  showScreen(r==='partner'?'s-partner-list':'s-team-dash');
+}
+
+async function loadAll(silent=false){
+  if(!silent) showScreen('s-loading');
+  try{
+    const d=await api({action:'getAll'});
+    state.partners=d.partners||[];
+    state.activities=d.activities||[];
+    if(d.spreadsheetUrl) state.sheetUrl=d.spreadsheetUrl;
+    if(!silent) showScreen('s-partner-list');
+    else{renderTeamDash();renderPartnerList();}
+    if(!silent) toast('Connected to Google Sheets','info');
+  }catch(e){
+    toast('Could not reach Google Sheets — check deployment settings.','error');
+    showScreen('s-partner-list');
+  }
+}
+
+function renderPartnerList(){
+  const c=document.getElementById('plist-container');
+  if(!state.partners.length){c.innerHTML='<div class="empty-state">No partners yet. Register one below.</div>';return;}
+  c.innerHTML=state.partners.map((p,i)=>`
+    <div class="partner-card" onclick="selectPartner('${p.id}')">
+      <div class="avatar av-sm ${av(i)}">${ini(p.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:500">${p.name}</div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">${p.phone||''}</div>
+      </div>
+      <span class="badge ${tc(p.tier)}">${p.tier}</span>
+      <span class="coins-pill">${pCoins(p.id)} coins</span>
+    </div>`).join('');
+}
+
+async function addPartner(){
+  const name=document.getElementById('np-name').value.trim();
+  const phone=document.getElementById('np-phone').value.trim();
+  const tier=document.getElementById('np-tier').value;
+  if(!name){toast('Please enter a name.','error');return;}
+  const btn=document.getElementById('btn-add-partner');
+  btn.disabled=true;btn.textContent='Adding…';
+  try{
+    const r=await api({action:'addPartner'},{action:'addPartner',name,phone,tier});
+    state.partners.push({id:r.id,name,phone,tier,monthBilling:[0,0,0]});
+    document.getElementById('np-name').value='';
+    document.getElementById('np-phone').value='';
+    toast(name+' added and saved to Sheets.');
+    renderPartnerList();
+  }catch(e){toast('Failed to add partner. Check connection.','error');}
+  finally{btn.disabled=false;btn.textContent='Add partner';}
+}
+
+function selectPartner(id){state.currentPartner=id;renderPartnerDash();showScreen('s-partner-dash');}
+
+// UPDATED: bonus is now 3-month (1 quarter) — earn quarterly reward = get matching bonus
+function calcBonusEligible(pid){
+  const p=state.partners.find(x=>x.id===pid);
+  if(!p) return false;
+  const ti=TIERS[p.tier]||TIERS.Advocate;
+  const mb=pMB(p);
+  return mb>=ti.min;
+}
+
+function renderPartnerDash(){
+  const p=state.partners.find(x=>x.id===state.currentPartner);
+  if(!p) return;
+  const coins=pCoins(p.id);
+  const cash=pCash(p.id);
+  const mb=pMB(p);
+  const ti=TIERS[p.tier]||TIERS.Advocate;
+  const pending=state.activities.filter(a=>a.partnerId===p.id&&a.status==='pending').length;
+  const cashRedeem=coinsToCash(coins);
+
+  document.getElementById('pd-name').textContent=p.name;
+  document.getElementById('pd-tier-badge').innerHTML=`<span class="badge ${tc(p.tier)}">${p.tier}</span>`;
+  document.getElementById('pd-phone').textContent=p.phone||'';
+
+  document.getElementById('pd-metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Total coins</div><div class="metric-value">${coins}</div><div class="metric-sub">Redeem for ${Rs(cashRedeem)}</div></div>
+    <div class="metric"><div class="metric-label">Month billing</div><div class="metric-value">${Rs(mb)}</div><div class="metric-sub">Target ${Rs(ti.min)}</div></div>
+    <div class="metric"><div class="metric-label">Pending</div><div class="metric-value">${pending}</div><div class="metric-sub">awaiting approval</div></div>
+    <div class="metric"><div class="metric-label">Cash earned</div><div class="metric-value">${Rs(cash)}</div></div>`;
+
+  const prog=Math.min(100,Math.round((mb/ti.min)*100));
+  document.getElementById('pd-progress').innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">
+      <span>${ti.disc}% discount · ${p.tier} tier</span><span>${prog}%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${prog}%"></div></div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-top:8px">
+      ${mb>=ti.min
+        ?`<span style="color:var(--green-dark);font-weight:500">&#10003; Monthly target met!</span> You qualify for the quarterly reward and 3-month bonus.`
+        :`${Rs(ti.min-mb)} more needed to meet this month's target.`}
+    </div>`;
+
+  // UPDATED: show new bonus structure (3-month, not 6-month)
+  document.getElementById('pd-rewards').innerHTML=`
+    <table class="reward-table">
+      <tr><th>Reward</th><th>Coins</th><th>Status</th></tr>
+      <tr>
+        <td>Quarterly reward<br><span style="font-size:11px;color:var(--color-text-secondary)">3 months consistent billing</span></td>
+        <td>${ti.coins_q.toLocaleString()}</td>
+        <td>${mb>=ti.min?'<span class="badge b-approved">Eligible</span>':'<span class="badge b-pending">In progress</span>'}</td>
+      </tr>
+      <tr>
+        <td>3-month bonus<br><span style="font-size:11px;color:var(--color-text-secondary)">Matching bonus when quarterly reward is met</span></td>
+        <td>${ti.bonus_coins.toLocaleString()}</td>
+        <td>${mb>=ti.min?'<span class="badge b-approved">Eligible</span>':'<span class="badge b-pending">In progress</span>'}</td>
+      </tr>
+      <tr>
+        <td>Coins redemption<br><span style="font-size:11px;color:var(--color-text-secondary)">4k=Rs.1k · 8k=Rs.2k · 16k=Rs.4k · 24k=Rs.6k</span></td>
+        <td>${coins}</td>
+        <td>${cashRedeem>0?`<span class="cash-pill">Redeem ${Rs(cashRedeem)}</span>`:'<span style="font-size:12px;color:var(--color-text-secondary)">Need 4,000 coins</span>'}</td>
+      </tr>
+    </table>`;
+
+  const acts=state.activities.filter(a=>a.partnerId===p.id).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  document.getElementById('pd-activities').innerHTML=acts.length?acts.map(a=>actRowHtml(a)).join(''):'<div class="empty-state">No activities logged yet.</div>';
+}
+
+function actRowHtml(a){
+  const meta=ACT_META[a.type]||{label:a.type};
+  return `<div class="act-row">
+    <div class="act-dot" style="background:${a.status==='approved'?'#639922':a.status==='rejected'?'#E24B4A':'#BA7517'}"></div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:500">${meta.label}</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">${a.desc||''}</div>
+      ${a.proof?`<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:1px">${a.proof}</div>`:''}
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:3px">${a.date||''}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+      <span class="badge b-${a.status}">${a.status}</span>
+      ${Number(a.coins)>0?`<span class="coins-pill">+${a.coins} coins</span>`:''}
+      ${Number(a.cash)>0?`<span class="cash-pill">+${Rs(a.cash)}</span>`:''}
+    </div>
+  </div>`;
+}
+
+function actTypeChanged(){
+  const t=document.getElementById('act-type').value;
+  const bg=document.getElementById('billing-group');
+  const pv=document.getElementById('act-preview');
+  bg.style.display=t==='billing'?'block':'none';
+  if(!t){pv.style.display='none';return;}
+  const p=state.partners.find(x=>x.id===state.currentPartner);
+  const ti=TIERS[p?p.tier:'Advocate']||TIERS.Advocate;
+  let msg='';
+  if(t==='billing'){
+    const amt=parseInt(document.getElementById('act-billing').value)||0;
+    const disc=amt>=1000?Math.round(amt*(ti.disc/100)):0;
+    msg=`<strong>${ti.disc}% discount</strong> saves ${Rs(disc)} on this order. When 3 months of billing are verified, you earn <strong>${ti.coins_q.toLocaleString()} quarterly coins + ${ti.bonus_coins.toLocaleString()} 3-month bonus coins.</strong>`;
+  }else{
+    const m=ACT_META[t];
+    if(m&&m.coins>0) msg=`Earns <strong>${m.coins.toLocaleString()} coins</strong> upon team approval.`;
+    else if(m&&m.cash>0) msg=`Earns <strong>${Rs(m.cash)} cash</strong> upon team approval.`;
+  }
+  pv.innerHTML=msg;pv.style.display=msg?'block':'none';
+}
+
+async function submitActivity(){
+  const type=document.getElementById('act-type').value;
+  const desc=document.getElementById('act-desc').value.trim();
+  if(!type||!desc){toast('Please fill in activity type and description.','error');return;}
+  const p=state.partners.find(x=>x.id===state.currentPartner);
+  const meta=ACT_META[type]||{coins:0,cash:0};
+  const billingAmt=type==='billing'?(parseInt(document.getElementById('act-billing').value)||0):0;
+  const btn=document.getElementById('btn-submit-act');
+  btn.disabled=true;btn.textContent='Submitting…';
+  try{
+    const payload={action:'addActivity',partnerId:p.id,type,desc,
+      proof:document.getElementById('act-proof').value,
+      coins:type==='billing'?0:meta.coins,cash:meta.cash,billingAmt};
+    const r=await api({action:'addActivity'},payload);
+    state.activities.push({id:r.id,partnerId:p.id,type,desc,proof:payload.proof,
+      coins:payload.coins,cash:meta.cash,billingAmt,status:'pending',
+      date:new Date().toISOString().slice(0,10)});
+    if(billingAmt>0){
+      const idx=state.partners.findIndex(x=>x.id===p.id);
+      if(!Array.isArray(state.partners[idx].monthBilling)) state.partners[idx].monthBilling=[0,0,0];
+      state.partners[idx].monthBilling[2]=(Number(state.partners[idx].monthBilling[2])||0)+billingAmt;
+    }
+    ['act-type','act-desc','act-proof','act-billing'].forEach(id=>{document.getElementById(id).value='';});
+    document.getElementById('act-preview').style.display='none';
+    document.getElementById('billing-group').style.display='none';
+    toast('Activity submitted — saved to Google Sheets!');
+    showScreen('s-partner-dash');
+  }catch(e){toast('Submission failed. Please try again.','error');}
+  finally{btn.disabled=false;btn.textContent='Submit for approval';}
+}
+
+function renderTeamDash(){
+  const pending=state.activities.filter(a=>a.status==='pending');
+  const thisMonth=new Date().toISOString().slice(0,7);
+  const coinsThisMonth=state.activities.filter(a=>a.status==='approved'&&(a.date||'').startsWith(thisMonth)).reduce((s,a)=>s+(Number(a.coins)||0),0);
+  const totalCash=state.activities.filter(a=>a.status==='approved').reduce((s,a)=>s+(Number(a.cash)||0),0);
+
+  document.getElementById('team-metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Partners</div><div class="metric-value">${state.partners.length}</div></div>
+    <div class="metric"><div class="metric-label">Pending</div><div class="metric-value">${pending.length}</div><div class="metric-sub">need review</div></div>
+    <div class="metric"><div class="metric-label">Coins this month</div><div class="metric-value">${coinsThisMonth}</div><div class="metric-sub">approved</div></div>
+    <div class="metric"><div class="metric-label">Total cash out</div><div class="metric-value">${Rs(totalCash)}</div></div>`;
+
+  document.getElementById('pending-count-badge').textContent=pending.length;
+  if(state.sheetUrl) document.getElementById('sheet-link-wrap').innerHTML=`<a href="${state.sheetUrl}" target="_blank" class="sheet-link">Open Sheet ↗</a>`;
+
+  document.getElementById('pending-list').innerHTML=pending.length?pending.map(a=>{
+    const p=state.partners.find(x=>x.id===a.partnerId);
+    const pi=p?state.partners.indexOf(p):0;
+    return `<div class="act-row">
+      <div class="avatar av-sm ${av(pi)}">${p?ini(p.name):'?'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500">${p?p.name:'Unknown'} <span style="font-weight:400;color:var(--color-text-secondary)">· ${(ACT_META[a.type]||{label:a.type}).label}</span></div>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">${a.desc||''}</div>
+        ${a.proof?`<div style="font-size:11px;color:var(--color-text-tertiary)">${a.proof}</div>`:''}
+        <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px">${a.date||''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+        ${Number(a.coins)>0?`<span class="coins-pill">${a.coins} coins</span>`:''}
+        ${Number(a.cash)>0?`<span class="cash-pill">${Rs(a.cash)}</span>`:''}
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-success" onclick="approveAct('${a.id}')">Approve</button>
+          <button class="btn btn-sm btn-danger" onclick="rejectAct('${a.id}')">Reject</button>
+        </div>
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty-state">No pending items — all caught up!</div>';
+
+  document.getElementById('team-partner-list').innerHTML=state.partners.length?state.partners.map((p,i)=>{
+    const coins=pCoins(p.id);
+    const mb=pMB(p);
+    const ti=TIERS[p.tier]||TIERS.Advocate;
+    const prog=Math.min(100,Math.round((mb/ti.min)*100));
+    return `<div class="partner-card" onclick="showTeamPartner('${p.id}')">
+      <div class="avatar av-sm ${av(i)}">${ini(p.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:500">${p.name}</div>
+        <div class="progress-track" style="margin:5px 0 2px"><div class="progress-fill" style="width:${prog}%"></div></div>
+        <div style="font-size:11px;color:var(--color-text-secondary)">${Rs(mb)} / ${Rs(ti.min)} this month · ${p.tier}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+        <span class="badge ${tc(p.tier)}">${p.tier}</span>
+        <span class="coins-pill">${coins} coins</span>
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty-state">No partners yet.</div>';
+}
+
+async function approveAct(id){
+  try{
+    await api({action:'updateActivityStatus'},{action:'updateActivityStatus',id,status:'approved'});
+    state.activities.find(x=>x.id===id).status='approved';
+    toast('Approved and saved to Sheets.');renderTeamDash();
+  }catch(e){toast('Update failed.','error');}
+}
+async function rejectAct(id){
+  try{
+    await api({action:'updateActivityStatus'},{action:'updateActivityStatus',id,status:'rejected'});
+    state.activities.find(x=>x.id===id).status='rejected';
+    toast('Rejected and saved to Sheets.');renderTeamDash();
+  }catch(e){toast('Update failed.','error');}
+}
+
+function showTeamPartner(pid){
+  const p=state.partners.find(x=>x.id===pid);
+  if(!p) return;
+  const i=state.partners.indexOf(p);
+  state.currentPartner=pid;
+  const coins=pCoins(pid),cash=pCash(pid),mb=pMB(p);
+  const ti=TIERS[p.tier]||TIERS.Advocate;
+  const prog=Math.min(100,Math.round((mb/ti.min)*100));
+  const cashRedeem=coinsToCash(coins);
+
+  document.getElementById('tp-header').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="avatar av-md ${av(i)}">${ini(p.name)}</div>
+      <div>
+        <div style="font-size:17px;font-weight:500">${p.name}</div>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">${p.phone||''}</div>
+        <div style="margin-top:4px"><span class="badge ${tc(p.tier)}">${p.tier}</span></div>
+      </div>
+    </div>`;
+
+  document.getElementById('tp-metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Total coins</div><div class="metric-value">${coins}</div><div class="metric-sub">≈ ${Rs(cashRedeem)} redeemable</div></div>
+    <div class="metric"><div class="metric-label">Cash earned</div><div class="metric-value">${Rs(cash)}</div></div>
+    <div class="metric"><div class="metric-label">This month</div><div class="metric-value">${Rs(mb)}</div><div class="metric-sub">of ${Rs(ti.min)} target</div></div>`;
+
+  // UPDATED: 3-month bonus logic shown to team
+  document.getElementById('tp-progress').innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">
+      <span>${ti.disc}% discount · ${p.tier} tier</span><span>${prog}%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${prog}%"></div></div>
+    <div style="margin-top:12px">
+      <table class="reward-table">
+        <tr><th>Reward</th><th>Coins</th><th>Status</th></tr>
+        <tr>
+          <td>Quarterly reward</td>
+          <td>${ti.coins_q.toLocaleString()}</td>
+          <td>${mb>=ti.min?'<span class="badge b-approved">Eligible — approve</span>':'<span class="badge b-pending">Not yet met</span>'}</td>
+        </tr>
+        <tr>
+          <td>3-month bonus<br><span style="font-size:11px;color:var(--color-text-secondary)">Awarded with quarterly reward</span></td>
+          <td>${ti.bonus_coins.toLocaleString()}</td>
+          <td>${mb>=ti.min?'<span class="badge b-approved">Eligible — approve</span>':'<span class="badge b-pending">Not yet met</span>'}</td>
+        </tr>
+        <tr>
+          <td>Coins redemption value</td>
+          <td>${coins} coins</td>
+          <td>${cashRedeem>0?`<span class="cash-pill">${Rs(cashRedeem)}</span>`:'<span style="font-size:12px;color:var(--color-text-secondary)">Below 4,000 coins</span>'}</td>
+        </tr>
+      </table>
+    </div>`;
+
+  document.getElementById('delete-zone').innerHTML=`
+    <div id="confirm-del" style="display:none">
+      <div class="confirm-overlay">
+        <div class="confirm-box">
+          <div style="font-size:15px;font-weight:500;margin-bottom:8px">Delete ${p.name}?</div>
+          <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1.25rem">This permanently removes their profile and all activity history from Google Sheets.</div>
+          <div style="display:flex;gap:8px;justify-content:center">
+            <button class="btn btn-danger" id="btn-confirm-del" onclick="confirmDel('${pid}')">Yes, delete</button>
+            <button class="btn" onclick="document.getElementById('confirm-del').style.display='none'">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:right;margin-bottom:1rem">
+      <button class="btn btn-danger btn-sm" onclick="document.getElementById('confirm-del').style.display='block'">Delete partner account</button>
+    </div>`;
+
+  const acts=state.activities.filter(a=>a.partnerId===pid).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  document.getElementById('tp-activities').innerHTML=acts.length?acts.map(a=>actRowHtml(a)).join(''):'<div class="empty-state">No activities yet.</div>';
+  showScreen('s-team-partner');
+}
+
+async function confirmDel(pid){
+  const btn=document.getElementById('btn-confirm-del');
+  btn.disabled=true;btn.textContent='Deleting…';
+  try{
+    await api({action:'deletePartner'},{action:'deletePartner',id:pid});
+    state.partners=state.partners.filter(p=>p.id!==pid);
+    state.activities=state.activities.filter(a=>a.partnerId!==pid);
+    toast('Partner deleted from Google Sheets.');
+    showScreen('s-team-dash');
+  }catch(e){toast('Delete failed.','error');btn.disabled=false;btn.textContent='Yes, delete';}
+}
+
+loadAll();
+</script>
